@@ -504,7 +504,7 @@ require('lazy').setup({
           map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
           -- Signature help for symbol under cursor
-          map('<leader>sh', vim.lsp.buf.signature_help, '[S]ignature [Help]')
+          map('<leader>sh', vim.lsp.buf.signature_help, '[S]ignature [H]elp')
 
           -- Opens a popup that displays documentation about the word under your cursor
           --  See `:help K` for why this keymap.
