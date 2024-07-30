@@ -19,6 +19,7 @@ return {
 
     -- Installs the debug adapters for you
     'williamboman/mason.nvim',
+    'WhoIsSethDaniel/mason-tool-installer.nvim',
     'jay-babu/mason-nvim-dap.nvim',
 
     -- Add your own debuggers here
@@ -28,20 +29,47 @@ return {
     local dap = require 'dap'
     local dapui = require 'dapui'
 
+    local mason_adapters = {
+      'delve',
+      'codelldb',
+      'debugpy',
+    }
+
+    local dap_adapters = {
+      delve = {},
+      codelldb = {
+        type = 'server',
+        port = '${port}',
+        executable = {
+          command = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin', 'codelldb' }, '/'),
+          args = { '--port', '${port}' },
+        },
+      },
+    }
+
+    require('mason').setup()
+
+    require('mason-tool-installer').setup {
+      ensure_installed = mason_adapters,
+    }
+
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
       -- reasonable debug configurations
-      automatic_installation = true,
-
-      -- You can provide additional configuration to the handlers,
-      -- see mason-nvim-dap README for more information
-      handlers = {},
+      automatic_installation = false,
 
       -- You'll need to check that you have the required things installed
       -- online, please don't ask me how to install them :)
-      ensure_installed = {
-        -- Update this to ensure that you have the debuggers for the langs you want
-        'delve',
+      ensure_installed = vim.tbl_keys(dap_adapters or {}),
+
+      -- You can provide additional configuration to the handlers,
+      -- see mason-nvim-dap README for more information
+      handlers = {
+        function(config)
+          local adapters = dap_adapters[config.name] or config.adapters
+          config.adapters = adapters
+          require('mason-nvim-dap').default_setup(config) --
+        end,
       },
     }
 
@@ -86,5 +114,21 @@ return {
 
     -- Install golang specific config
     require('dap-go').setup()
+
+    dap.configurations.cpp = {
+      {
+        name = 'Launch file',
+        type = 'codelldb',
+        request = 'launch',
+        program = function()
+          return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+        end,
+        cwd = '${workspaceFolder}',
+        stopOnEntry = false,
+      },
+    }
+
+    dap.configurations.c = dap.configurations.cpp
+    dap.configurations.rust = dap.configurations.cpp
   end,
 }
