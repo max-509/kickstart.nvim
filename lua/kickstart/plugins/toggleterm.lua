@@ -3,7 +3,7 @@ return {
   version = '*',
   config = function()
     require('toggleterm').setup {
-      open_mapping = [[<C-t>]],
+      open_mapping = [[<C-_>]],
       start_in_insert = true,
       insert_mapping = true,
       terminal_mapping = true,
