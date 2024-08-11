@@ -2,11 +2,52 @@ return {
 
   { -- Linting
     'mfussenegger/nvim-lint',
+    dependencies = {
+      -- Installs the linters for you
+      'williamboman/mason.nvim',
+      'WhoIsSethDaniel/mason-tool-installer.nvim',
+    },
+
     event = { 'BufReadPre', 'BufNewFile' },
     config = function()
+      require('mason').setup()
+
+      local linters = {
+        'markdownlint',
+      }
+      require('mason-tool-installer').setup {
+        ensure_installed = linters,
+      }
+
       local lint = require 'lint'
+      local clangd_clangtidy_func = function()
+        local pattern = [[([^:]*):(%d+):(%d+): (%w+): ([^[]+)]]
+        local groups = { 'file', 'lnum', 'col', 'severity', 'message' }
+
+        local severity_map = {
+          ['error'] = vim.diagnostic.severity.ERROR,
+          ['warning'] = vim.diagnostic.severity.WARN,
+          ['information'] = vim.diagnostic.severity.INFO,
+          ['hint'] = vim.diagnostic.severity.HINT,
+          ['note'] = vim.diagnostic.severity.HINT,
+        }
+
+        return {
+          name = 'clangd_clangtidy',
+          cmd = 'clangd',
+          args = { '--clang-tidy' },
+          stdin = false,
+          ignore_exitcode = true,
+          parser = require('lint.parser').from_pattern(pattern, groups, severity_map,
+            { ['source'] = 'clangd_clangtidy' })
+        }
+      end
+
+      lint.linters.clangd_clangtidy = clangd_clangtidy_func()
       lint.linters_by_ft = {
         markdown = { 'markdownlint' },
+        -- cpp = { 'clangd_clangtidy_func' },
+        -- c = { 'clangd_clangtidy_func' },
       }
 
       -- To allow other plugins to add linters to require('lint').linters_by_ft,
