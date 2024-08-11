@@ -277,6 +277,9 @@ require('lazy').setup({
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
+    dependencies = {
+      'nvim-web-devicons',
+    },
     config = function() -- This is the function that runs, AFTER loading
       require('which-key').setup()
 
@@ -637,6 +640,13 @@ require('lazy').setup({
 
   { -- Autoformat
     'stevearc/conform.nvim',
+    dependencies = {
+      {
+        'williamboman/mason.nvim',
+        config = true,
+      }, -- NOTE: Must be loaded before dependants
+      'WhoIsSethDaniel/mason-tool-installer.nvim',
+    },
     lazy = false,
     keys = {
       {
@@ -655,6 +665,7 @@ require('lazy').setup({
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
         local disable_filetypes = { c = true, cpp = true }
+        -- local disable_filetypes = {}
         return {
           timeout_ms = 500,
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
@@ -662,6 +673,10 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        cpp = { 'clang-format' },
+        c = { 'clang-format' },
+        cmake = { 'cmake_format' },
+        sh = { 'shfmt' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -669,7 +684,28 @@ require('lazy').setup({
         -- is found.
         -- javascript = { { "prettierd", "prettier" } },
       },
+      formatters = {
+        clang_format = {
+          prepend_args = { '--style=file', '--fallback-style=LLVM' },
+        },
+        shfmt = {
+          prepend_args = { '-i', '4' },
+        },
+      },
     },
+    config = function()
+      require('mason').setup()
+
+      -- You can add other tools here that you want Mason to install
+      -- for you, so that they are available from within Neovim.
+      local formatters = {
+        'clang-format',
+        'cmakelang',
+        'shfmt',
+        'stylua',
+      }
+      require('mason-tool-installer').setup { ensure_installed = formatters }
+    end,
   },
 
   { -- Autocompletion

@@ -8,16 +8,42 @@ return {
     'nvim-lua/plenary.nvim',
     'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
     'MunifTanjim/nui.nvim',
+    {
+      's1n7ax/nvim-window-picker',
+      version = '2.*',
+      config = function()
+        require('window-picker').setup {
+          filter_rules = {
+            include_current_win = false,
+            autoselect_one = true,
+            bo = {
+              -- if the file type is one of following, the window will be ignored
+              filetype = { 'neo-tree', "neo-tree-popup", "notify" },
+              -- if the buffer type is one of following, the window will be ignored
+              buftype = { 'terminal', "quickfix" },
+            },
+          }
+        }
+      end
+    }
   },
   cmd = 'Neotree',
   keys = {
-    { '\\', ':Neotree reveal<CR>', { desc = 'NeoTree reveal' } },
+    { '\\f', ':Neotree filesystem reveal<CR>', { desc = 'NeoTree filesystem reveal' } },
+    { '\\b', ':Neotree float buffers',    { desc = 'NeoTree buffers' } },
+    { '\\g', ':Neotree git_status',    { desc = 'NeoTree git' } },
   },
   opts = {
     filesystem = {
+      hijack_netrw_behavior = "open_default",
+      filtered_items = {
+        hide_dotfiles = false,
+        hide_gitignored = false,
+        hide_hidden = false,
+      },
       window = {
         mappings = {
-          ['\\'] = 'close_window',
+          ['\\c'] = 'close_window',
         },
       },
     },
@@ -74,6 +100,27 @@ return {
           conflict = '',
         },
       },
+    },
+    git_status = {
+      window = {
+        position = "float",
+        mappings = {
+          ["A"]  = "git_add_all",
+          ["gu"] = "git_unstage_file",
+          ["ga"] = "git_add_file",
+          ["gr"] = "git_revert_file",
+          ["gc"] = "git_commit",
+          ["gp"] = "git_push",
+          ["gg"] = "git_commit_and_push",
+          ["o"]  = { "show_help", nowait = false, config = { title = "Order by", prefix_key = "o" } },
+          ["oc"] = { "order_by_created", nowait = false },
+          ["od"] = { "order_by_diagnostics", nowait = false },
+          ["om"] = { "order_by_modified", nowait = false },
+          ["on"] = { "order_by_name", nowait = false },
+          ["os"] = { "order_by_size", nowait = false },
+          ["ot"] = { "order_by_type", nowait = false },
+        }
+      }
     },
   },
 }
