@@ -30,8 +30,8 @@ return {
   cmd = 'Neotree',
   keys = {
     { '\\f', ':Neotree filesystem reveal<CR>', { desc = 'NeoTree filesystem reveal' } },
-    { '\\b', ':Neotree float buffers',    { desc = 'NeoTree buffers' } },
-    { '\\g', ':Neotree git_status',    { desc = 'NeoTree git' } },
+    { '\\b', ':Neotree float buffers<CR>',    { desc = 'NeoTree buffers' } },
+    { '\\g', ':Neotree git_status<CR>',    { desc = 'NeoTree git' } },
   },
   opts = {
     filesystem = {
