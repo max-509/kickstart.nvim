@@ -83,7 +83,6 @@ I hope you enjoy your Neovim journey,
 
 P.S. You can delete this when you're done too. It's your config now! :)
 --]]
-
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -91,7 +90,9 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
+
+vim.opt.sessionoptions:append 'globals'
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -225,6 +226,15 @@ vim.opt.rtp:prepend(lazypath)
 --
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
+  {
+    's1n7ax/nvim-window-picker',
+    name = 'window-picker',
+    event = 'VeryLazy',
+    version = '2.*',
+    config = function()
+      require 'window-picker'.setup()
+    end,
+  },
   'ThePrimeagen/vim-be-good',
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
@@ -239,7 +249,7 @@ require('lazy').setup({
   --    require('Comment').setup({})
 
   -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} }, 
+  { 'numToStr/Comment.nvim',    opts = {} },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
@@ -256,7 +266,7 @@ require('lazy').setup({
   -- after the plugin has been loaded:
   --  config = function() ... end
 
-  { -- Useful plugin to show you pending keybinds.
+  {                     -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     dependencies = {
@@ -308,10 +318,11 @@ require('lazy').setup({
           return vim.fn.executable 'make' == 1
         end,
       },
+      { 's1n7ax/nvim-window-picker' },
       { 'nvim-telescope/telescope-ui-select.nvim' },
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -335,16 +346,49 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
+
+      local telescope_config = require('telescope.config')
+
+      local vimgrep_arguments = { unpack(telescope_config.values.vimgrep_arguments) }
+
+
+      -- I want to search in hidden/dot files.
+      table.insert(vimgrep_arguments, "--hidden")
+      -- I don't want to search in the `.git` directory.
+      table.insert(vimgrep_arguments, "--glob")
+      table.insert(vimgrep_arguments, "!**/.git/*")
+
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
-        -- pickers = {}
+        defaults = {
+          mappings = {
+            i = {
+              ['<C-g>'] = function(prompt_bufnr)
+                -- Use nvim-window-picker to choose the window by dynamically attaching a function
+                local action_set = require('telescope.actions.set')
+                local action_state = require('telescope.actions.state')
+
+                local picker = action_state.get_current_picker(prompt_bufnr)
+                picker.get_selection_window = function(picker, entry)
+                  local picked_window_id = require('window-picker').pick_window() or vim.api.nvim_get_current_win()
+                  -- Unbind after using so next instance of the picker acts normally
+                  picker.get_selection_window = nil
+                  return picked_window_id
+                end
+
+                return action_set.edit(prompt_bufnr, 'edit')
+              end,
+            },
+          },
+          vimgrep_arguments = vimgrep_arguments,
+        },
+        pickers = {
+          find_files = {
+            find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
+          }
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -367,7 +411,10 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+      vim.keymap.set('n', '<leader>.', function() builtin.find_files({ cwd = vim.fn.expand('%:p:h') }) end,
+        { desc = 'Search In Editing File (".")' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -602,6 +649,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'markdownlint', -- Used to format markdown
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -859,6 +907,29 @@ require('lazy').setup({
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
+      require('mini.sessions').setup({
+        hooks = {
+          pre = {
+            write = function() vim.api.nvim_exec_autocmds('User', { pattern = 'SessionSavePre' }) end,
+          },
+        },
+      })
+      local starter = require('mini.starter')
+      starter.setup({
+        evaluate_single = true,
+        items = {
+          starter.sections.builtin_actions(),
+          starter.sections.recent_files(10, false),
+          starter.sections.recent_files(10, true),
+          -- Use this if you set up 'mini.sessions'
+          starter.sections.sessions(5, true)
+        },
+        content_hooks = {
+          starter.gen_hook.adding_bullet(),
+          starter.gen_hook.indexing('all', { 'Builtin actions' }),
+          starter.gen_hook.padding(3, 2),
+        },
+      })
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
@@ -928,6 +999,7 @@ require('lazy').setup({
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.cmake-tools',
   require 'kickstart.plugins.toggleterm',
+  require 'kickstart.plugins.barbar',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`

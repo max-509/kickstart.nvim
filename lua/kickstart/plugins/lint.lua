@@ -13,7 +13,6 @@ return {
       require('mason').setup()
 
       local linters = {
-        'markdownlint',
       }
       require('mason-tool-installer').setup {
         ensure_installed = linters,
