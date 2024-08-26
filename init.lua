@@ -998,7 +998,8 @@ require('lazy').setup({
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.cmake-tools',
-  require 'kickstart.plugins.toggleterm',
+  -- tmux is better
+  -- require 'kickstart.plugins.toggleterm',
   require 'kickstart.plugins.barbar',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
   require 'kickstart.plugins.nvim-tmux-nagigator',
