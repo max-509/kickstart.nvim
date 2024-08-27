@@ -13,6 +13,7 @@ return {
       require('mason').setup()
 
       local linters = {
+        'markdownlint',
       }
       require('mason-tool-installer').setup {
         ensure_installed = linters,
@@ -45,6 +46,7 @@ return {
       lint.linters.clangd_clangtidy = clangd_clangtidy_func()
       lint.linters_by_ft = {
         markdown = { 'markdownlint' },
+        python = {},
         -- cpp = { 'clangd_clangtidy_func' },
         -- c = { 'clangd_clangtidy_func' },
       }
