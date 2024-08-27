@@ -608,7 +608,6 @@ require('lazy').setup({
           filetypes = { 'c', 'cc', 'cpp', 'h', 'hpp', 'objc', 'objcpp', 'cuda', 'proto' },
         },
         -- gopls = {},
-        -- pyright = {},
         rust_analyzer = {},
         cmake = {},
         pyright = {},
