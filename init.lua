@@ -459,6 +459,14 @@ require('lazy').setup({
       -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
       -- used for completion, annotations and signatures of Neovim apis
       { 'folke/neodev.nvim', opts = {} },
+      {
+        'SmiteshP/nvim-navbuddy',
+        dependencies = {
+          'SmiteshP/nvim-navic',
+          'MinifTanjim/nui.nvim',
+        },
+        opts = { lsp = { auto_attach = true } }
+      },
     },
     config = function()
       -- Brief aside: **What is LSP?**
@@ -587,6 +595,32 @@ require('lazy').setup({
         end,
       })
 
+      vim.api.nvim_create_user_command("LspCapabilities", function()
+        local curBuf = vim.api.nvim_get_current_buf()
+        local clients = vim.lsp.get_active_clients { bufnr = curBuf }
+
+        for _, client in pairs(clients) do
+          if client.name ~= "null-ls" then
+            local capAsList = {}
+            for key, value in pairs(client.server_capabilities) do
+              if value and key:find("Provider") then
+                local capability = key:gsub("Provider$", "")
+                table.insert(capAsList, "- " .. capability)
+              end
+            end
+            table.sort(capAsList) -- sorts alphabetically
+            local msg = "# " .. client.name .. "\n" .. table.concat(capAsList, "\n")
+            vim.notify(msg, "trace", {
+              on_open = function(win)
+                local buf = vim.api.nvim_win_get_buf(win)
+                vim.api.nvim_buf_set_option(buf, "filetype", "markdown")
+              end,
+              timeout = 14000,
+            })
+            vim.fn.setreg("+", "Capabilities = " .. vim.inspect(client.server_capabilities))
+          end
+        end
+      end, {})
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
       --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
@@ -610,7 +644,18 @@ require('lazy').setup({
         -- gopls = {},
         rust_analyzer = {},
         cmake = {},
-        pyright = {},
+        pyright = {
+          settings = {
+            python = {
+              analysis = {
+                autoSearchPaths = true,
+                autoImportCompletions = true,
+                userLibraryCodeForTypes = true,
+                diagnosticMode = "openFilesOnly",
+              }
+            }
+          }
+        },
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -986,6 +1031,8 @@ require('lazy').setup({
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
   require 'kickstart.plugins.nvim-tmux-nagigator',
   require 'kickstart.plugins.vim-test',
+  require 'kickstart.plugins.harpoon',
+  require 'kickstart.plugins.code_runner',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
