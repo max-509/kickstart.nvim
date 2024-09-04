@@ -1033,7 +1033,7 @@ require('lazy').setup({
   require 'kickstart.plugins.vim-test',
   require 'kickstart.plugins.harpoon',
   require 'kickstart.plugins.code_runner',
-  require 'kickstart.plugins.copilot',
+  require 'kickstart.plugins.codeium',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
