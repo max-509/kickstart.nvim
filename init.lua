@@ -656,6 +656,7 @@ require('lazy').setup({
             }
           }
         },
+        clojure_lsp = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -981,7 +982,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'cpp', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc', 'python', },
+      ensure_installed = { 'bash', 'c', 'cpp', 'go', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc', 'python', 'clojure', },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1009,6 +1010,10 @@ require('lazy').setup({
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     end,
   },
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+  },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
@@ -1034,6 +1039,7 @@ require('lazy').setup({
   require 'kickstart.plugins.harpoon',
   require 'kickstart.plugins.code_runner',
   require 'kickstart.plugins.codeium',
+  require 'kickstart.plugins.conjure',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
