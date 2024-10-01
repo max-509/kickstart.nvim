@@ -920,6 +920,7 @@ require('lazy').setup({
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
+    dependencies = { "GCBallesteros/NotebookNavigator.nvim" },
     config = function()
       -- Better Around/Inside textobjects
       --
@@ -927,7 +928,14 @@ require('lazy').setup({
       --  - va)  - [V]isually select [A]round [)]paren
       --  - yinq - [Y]ank [I]nside [N]ext [']quote
       --  - ci'  - [C]hange [I]nside [']quote
-      require('mini.ai').setup { n_lines = 500 }
+      require('mini.ai').setup {
+        n_lines = 500,
+        opts = function()
+          local nn = require("notebook-navigator")
+          local opts = { custom_textobjects = { h = nn.miniai_spec } }
+          return opts
+        end
+      }
 
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
       --
@@ -1030,8 +1038,7 @@ require('lazy').setup({
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.cmake-tools',
-  -- tmux is better
-  -- require 'kickstart.plugins.toggleterm',
+  require 'kickstart.plugins.iron',
   require 'kickstart.plugins.barbar',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
   require 'kickstart.plugins.nvim-tmux-nagigator',
@@ -1040,6 +1047,8 @@ require('lazy').setup({
   require 'kickstart.plugins.code_runner',
   require 'kickstart.plugins.codeium',
   require 'kickstart.plugins.conjure',
+  -- require 'kickstart.plugins.jupytext',
+  -- require 'kickstart.plugins.notebook-navigator',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
